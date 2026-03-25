@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Unit Converter</title>
+
+  <style>
+    :root {
+      --bg: linear-gradient(135deg, #7c3aed, #a855f7);
+      --card-bg: #ffffff;
+      --text: #222;
+      --muted: #666;
+      --input-bg: #ffffff;
+      --input-border: #d8c7ff;
+      --swap-bg: #ede9fe;
+      --swap-hover: #ddd6fe;
+      --copy-bg: #7c3aed;
+      --copy-hover: #6d28d9;
+      --shadow: 0 12px 30px rgba(0,0,0,0.18);
+    }
+
+    body.dark {
+      --bg: linear-gradient(135deg, #1e1b4b, #312e81);
+      --card-bg: #111827;
+      --text: #f3f4f6;
+      --muted: #9ca3af;
+      --input-bg: #1f2937;
+      --input-border: #4c1d95;
+      --swap-bg: #2b2247;
+      --swap-hover: #3a2e63;
+      --copy-bg: #8b5cf6;
+      --copy-hover: #7c3aed;
+      --shadow: 0 12px 30px rgba(0,0,0,0.4);
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .card {
+      width: 380px;
+      background: var(--card-bg);
+      padding: 28px;
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .toggle {
+      width: 50px;
+      height: 26px;
+      background: #ccc;
+      border-radius: 20px;
+      position: relative;
+      cursor: pointer;
+    }
+
+    .toggle::before {
+      content: "";
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background: white;
+      border-radius: 50%;
+      top: 3px;
+      left: 4px;
+      transition: 0.3s;
+    }
+
+    body.dark .toggle::before {
+      transform: translateX(22px);
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      border-radius: 8px;
+      border: 1px solid var(--input-border);
+      background: var(--input-bg);
+      color: var(--text);
+    }
+
+    .swap-btn, .copy-btn {
+      width: 100%;
+      margin-top: 10px;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .swap-btn {
+      background: var(--swap-bg);
+    }
+
+    .swap-btn:hover {
+      background: var(--swap-hover);
+    }
+
+    .copy-btn {
+      background: var(--copy-bg);
+      color: white;
+    }
+
+    .copy-btn:hover {
+      background: var(--copy-hover);
+    }
+
+    .hint {
+      margin-top: 10px;
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="card">
+    <div class="top-bar">
+  <h2>Unit Converter</h2>
+  <div style="display:flex; align-items:center; gap:8px;">
+    <span style="font-size:0.9rem; color:var(--muted);">Dark Mode</span>
+    <div class="toggle" id="toggle"></div>
+  </div>
+</div>
+
+    <input type="number" id="kmInput" placeholder="Kilometers" />
+
+    <button class="swap-btn" id="swapBtn">Switch Input</button>
+
+    <input type="number" id="miInput" placeholder="Miles" />
+
+    <button class="copy-btn" id="copyBtn">Copy Result</button>
+
+    <div class="hint" id="hint">Type in either field to convert instantly</div>
+  </div>
+
+  <script>
+    const kmInput = document.getElementById("kmInput");
+    const miInput = document.getElementById("miInput");
+    const toggle = document.getElementById("toggle");
+    const swapBtn = document.getElementById("swapBtn");
+    const copyBtn = document.getElementById("copyBtn");
+    const hint = document.getElementById("hint");
+
+    let isUpdating = false;
+    let focusOnKm = true;
+    let lastValue = "";
+
+    function format(value) {
+      if (value === "" || isNaN(value)) return "";
+      return parseFloat(value.toFixed(4));
+    }
+
+    kmInput.addEventListener("input", () => {
+      if (isUpdating) return;
+      isUpdating = true;
+
+      const km = parseFloat(kmInput.value);
+      if (kmInput.value === "") {
+        miInput.value = "";
+        lastValue = "";
+      } else if (!isNaN(km)) {
+        const result = format(km * 0.621371);
+        miInput.value = result;
+        lastValue = result;
+      }
+
+      isUpdating = false;
+    });
+
+    miInput.addEventListener("input", () => {
+      if (isUpdating) return;
+      isUpdating = true;
+
+      const mi = parseFloat(miInput.value);
+      if (miInput.value === "") {
+        kmInput.value = "";
+        lastValue = "";
+      } else if (!isNaN(mi)) {
+        const result = format(mi * 1.60934);
+        kmInput.value = result;
+        lastValue = result;
+      }
+
+      isUpdating = false;
+    });
+
+    kmInput.addEventListener("focus", () => focusOnKm = true);
+    miInput.addEventListener("focus", () => focusOnKm = false);
+
+    function switchInput() {
+      if (focusOnKm) {
+        miInput.focus();
+      } else {
+        kmInput.focus();
+      }
+    }
+
+    swapBtn.addEventListener("click", switchInput);
+
+    copyBtn.addEventListener("click", () => {
+      if (!lastValue) return;
+
+      navigator.clipboard.writeText(lastValue);
+      hint.textContent = "Copied!";
+      setTimeout(() => {
+        hint.textContent = "Type in either field to convert instantly";
+      }, 1500);
+    });
+
+    toggle.addEventListener("click", () => {
+      document.body.classList.toggle("dark");
+    });
+  </script>
+</body>
+</html>
